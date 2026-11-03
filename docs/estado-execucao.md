@@ -38,3 +38,9 @@ A primeira implantação do modelo falhou porque o linked service do Data Lake a
 A autenticação integrada foi validada pelo próprio ADF. A conexão utiliza a identidade do serviço Windows e uma porta estritamente local, sem usar a senha pessoal do usuário. A chave de registro do runtime não está neste repositório.
 
 A segunda cópia compartilha a mesma conta e região: é redundância lógica didática, não um backup independente contra perda da conta ou falha regional.
+
+## Entrega
+
+Projeto enviado à DIO em 3 de novembro de 2026. A plataforma confirmou o status PROJETO ENTREGUE.
+
+![Confirmação de entrega](projeto-entregue-dio.png)
