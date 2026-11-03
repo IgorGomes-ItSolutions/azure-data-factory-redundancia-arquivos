@@ -1,0 +1,23 @@
+{
+  "properties": {
+    "typeProperties": {
+      "database": "DioRedundanciaLab",
+      "server": "127.0.0.1,14333",
+      "password": {
+        "value": "unused-integrated-auth",
+        "type": "SecureString"
+      },
+      "encrypt": "mandatory",
+      "userName": "NT SERVICE\\DIAHostService",
+      "authenticationType": "SQL",
+      "trustServerCertificate": true,
+      "integratedSecurity": true
+    },
+    "type": "SqlServer",
+    "connectVia": {
+      "referenceName": "ir-onprem-lab",
+      "type": "IntegrationRuntimeReference"
+    }
+  },
+  "name": "ls_sql_onprem"
+}

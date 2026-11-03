@@ -1,0 +1,7 @@
+id_documento,data_recebimento,tipo_documento,unidade_ficticia,quantidade,status_documento
+1,2026-11-01,intimacao,Unidade Alfa,51,recebido
+2,2026-11-01,mandado,Unidade Beta,45,validado
+3,2026-11-01,processo,Unidade Alfa,20,recebido
+4,2026-11-01,inquerito,Unidade Gama,34,validado
+5,2026-11-02,relatorio,Unidade Beta,16,recebido
+6,2026-11-02,oficio,Unidade Gama,28,validado

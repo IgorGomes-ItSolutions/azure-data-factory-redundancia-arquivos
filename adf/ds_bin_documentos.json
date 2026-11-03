@@ -1,0 +1,38 @@
+{
+  "name": "ds_bin_documentos",
+  "properties": {
+    "linkedServiceName": {
+      "referenceName": "ls_adls_lab",
+      "type": "LinkedServiceReference"
+    },
+    "parameters": {
+      "container": {
+        "type": "String"
+      },
+      "pasta": {
+        "type": "String"
+      },
+      "arquivo": {
+        "type": "String"
+      }
+    },
+    "type": "Binary",
+    "typeProperties": {
+      "location": {
+        "type": "AzureBlobFSLocation",
+        "fileSystem": {
+          "value": "@dataset().container",
+          "type": "Expression"
+        },
+        "folderPath": {
+          "value": "@dataset().pasta",
+          "type": "Expression"
+        },
+        "fileName": {
+          "value": "@dataset().arquivo",
+          "type": "Expression"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "ir-onprem-lab",
+  "properties": {
+    "type": "SelfHosted",
+    "description": "Runtime do laboratorio SQL local. Registrar o no antes de executar."
+  }
+}

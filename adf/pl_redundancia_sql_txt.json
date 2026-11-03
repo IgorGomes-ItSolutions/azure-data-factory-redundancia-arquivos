@@ -1,0 +1,262 @@
+{
+  "name": "pl_redundancia_sql_txt",
+  "properties": {
+    "description": "Copia SQL on-premises para raw/bronze e replica os bytes para outro container. Sem gatilhos. Requer SHIR online e linked services configurados.",
+    "activities": [
+      {
+        "name": "SQL_para_Raw",
+        "type": "Copy",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.00:10:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 15,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "userProperties": [],
+        "typeProperties": {
+          "source": {
+            "type": "SqlSource",
+            "sqlReaderQuery": "SELECT id_documento, CONVERT(varchar(10), data_recebimento, 23) AS data_recebimento, tipo_documento, unidade_ficticia, quantidade, status_documento FROM dbo.DocumentosFicticios ORDER BY id_documento",
+            "queryTimeout": "00:05:00"
+          },
+          "sink": {
+            "type": "DelimitedTextSink",
+            "storeSettings": {
+              "type": "AzureBlobFSWriteSettings"
+            },
+            "formatSettings": {
+              "type": "DelimitedTextWriteSettings",
+              "quoteAllText": true,
+              "fileExtension": ".txt"
+            }
+          },
+          "enableStaging": false,
+          "parallelCopies": 1
+        },
+        "inputs": [
+          {
+            "referenceName": "ds_sql_documentos",
+            "type": "DatasetReference"
+          }
+        ],
+        "outputs": [
+          {
+            "referenceName": "ds_txt_documentos",
+            "type": "DatasetReference",
+            "parameters": {
+              "container": "raw",
+              "pasta": {
+                "value": "@concat('bronze/documentos/',pipeline().RunId)",
+                "type": "Expression"
+              },
+              "arquivo": "documentos.txt"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Raw_para_Copia",
+        "type": "Copy",
+        "dependsOn": [
+          {
+            "activity": "SQL_para_Raw",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "policy": {
+          "timeout": "0.00:10:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 15,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "userProperties": [],
+        "typeProperties": {
+          "source": {
+            "type": "BinarySource",
+            "storeSettings": {
+              "type": "AzureBlobFSReadSettings",
+              "recursive": false
+            },
+            "formatSettings": {
+              "type": "BinaryReadSettings"
+            }
+          },
+          "sink": {
+            "type": "BinarySink",
+            "storeSettings": {
+              "type": "AzureBlobFSWriteSettings"
+            }
+          },
+          "enableStaging": false,
+          "parallelCopies": 1
+        },
+        "inputs": [
+          {
+            "referenceName": "ds_bin_documentos",
+            "type": "DatasetReference",
+            "parameters": {
+              "container": "raw",
+              "pasta": {
+                "value": "@concat('bronze/documentos/',pipeline().RunId)",
+                "type": "Expression"
+              },
+              "arquivo": "documentos.txt"
+            }
+          }
+        ],
+        "outputs": [
+          {
+            "referenceName": "ds_bin_documentos",
+            "type": "DatasetReference",
+            "parameters": {
+              "container": "redundancia",
+              "pasta": {
+                "value": "@concat('bronze/documentos/',pipeline().RunId)",
+                "type": "Expression"
+              },
+              "arquivo": "documentos.txt"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Metadados_Raw",
+        "type": "GetMetadata",
+        "dependsOn": [
+          {
+            "activity": "Raw_para_Copia",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "policy": {
+          "timeout": "0.00:10:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 15,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "userProperties": [],
+        "typeProperties": {
+          "dataset": {
+            "referenceName": "ds_bin_documentos",
+            "type": "DatasetReference",
+            "parameters": {
+              "container": "raw",
+              "pasta": {
+                "value": "@concat('bronze/documentos/',pipeline().RunId)",
+                "type": "Expression"
+              },
+              "arquivo": "documentos.txt"
+            }
+          },
+          "fieldList": [
+            "exists",
+            "size"
+          ],
+          "storeSettings": {
+            "type": "AzureBlobFSReadSettings",
+            "recursive": false
+          },
+          "formatSettings": {
+            "type": "BinaryReadSettings"
+          }
+        }
+      },
+      {
+        "name": "Metadados_Copia",
+        "type": "GetMetadata",
+        "dependsOn": [
+          {
+            "activity": "Raw_para_Copia",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "policy": {
+          "timeout": "0.00:10:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 15,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "userProperties": [],
+        "typeProperties": {
+          "dataset": {
+            "referenceName": "ds_bin_documentos",
+            "type": "DatasetReference",
+            "parameters": {
+              "container": "redundancia",
+              "pasta": {
+                "value": "@concat('bronze/documentos/',pipeline().RunId)",
+                "type": "Expression"
+              },
+              "arquivo": "documentos.txt"
+            }
+          },
+          "fieldList": [
+            "exists",
+            "size"
+          ],
+          "storeSettings": {
+            "type": "AzureBlobFSReadSettings",
+            "recursive": false
+          },
+          "formatSettings": {
+            "type": "BinaryReadSettings"
+          }
+        }
+      },
+      {
+        "name": "Validar_Copias",
+        "type": "IfCondition",
+        "dependsOn": [
+          {
+            "activity": "Metadados_Raw",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          },
+          {
+            "activity": "Metadados_Copia",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "userProperties": [],
+        "typeProperties": {
+          "expression": {
+            "value": "@and(equals(activity('SQL_para_Raw').output.rowsRead,activity('SQL_para_Raw').output.rowsCopied),and(greater(activity('SQL_para_Raw').output.rowsCopied,0),and(activity('Metadados_Raw').output.exists,and(activity('Metadados_Copia').output.exists,and(greater(activity('Metadados_Raw').output.size,0),equals(activity('Metadados_Raw').output.size,activity('Metadados_Copia').output.size))))))",
+            "type": "Expression"
+          },
+          "ifTrueActivities": [],
+          "ifFalseActivities": [
+            {
+              "name": "Falha_Integridade",
+              "type": "Fail",
+              "dependsOn": [],
+              "userProperties": [],
+              "typeProperties": {
+                "message": "Contagem SQL divergente, origem vazia, arquivo ausente ou tamanhos diferentes.",
+                "errorCode": "INTEGRIDADE_INVALIDA"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "annotations": [
+      "dados-ficticios",
+      "dio",
+      "redundancia-logica"
+    ]
+  }
+}

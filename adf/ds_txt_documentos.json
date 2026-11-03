@@ -1,0 +1,45 @@
+{
+  "name": "ds_txt_documentos",
+  "properties": {
+    "linkedServiceName": {
+      "referenceName": "ls_adls_lab",
+      "type": "LinkedServiceReference"
+    },
+    "parameters": {
+      "container": {
+        "type": "String"
+      },
+      "pasta": {
+        "type": "String"
+      },
+      "arquivo": {
+        "type": "String"
+      }
+    },
+    "type": "DelimitedText",
+    "typeProperties": {
+      "location": {
+        "type": "AzureBlobFSLocation",
+        "fileSystem": {
+          "value": "@dataset().container",
+          "type": "Expression"
+        },
+        "folderPath": {
+          "value": "@dataset().pasta",
+          "type": "Expression"
+        },
+        "fileName": {
+          "value": "@dataset().arquivo",
+          "type": "Expression"
+        }
+      },
+      "columnDelimiter": ";",
+      "rowDelimiter": "\n",
+      "encodingName": "UTF-8",
+      "quoteChar": "\"",
+      "escapeChar": "\\",
+      "firstRowAsHeader": true
+    },
+    "schema": []
+  }
+}
